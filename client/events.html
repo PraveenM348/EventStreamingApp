@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+	<style type="text/css">
+		#myChart{
+  width:max-content !important;
+  height:500px !important;
+
+}
+
+body{
+	margin: 3vw 10vw;
+}
+
+* {
+  font-family: Arial, sans-serif;
+}
+
+.text{
+	text-align: center;
+}
+
+.data{
+	display: flex;
+	justify-content: space-evenly;
+	margin-top: 50px;
+}
+
+.box{
+	border: 1px solid lightgrey;
+	padding: 30px;
+	border-radius: 8px;
+	width: max-content;
+	height: auto;
+	letter-spacing: 1px;
+}
+
+.btn {
+font-size: 16px;
+  padding: 10px 30px;
+  margin-top: 15px;
+  color: #000000;
+  text-decoration: none;
+  background: #ffce00;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: 0.5s;
+  border: none;
+}
+
+.btn:hover{
+	cursor: pointer;
+}
+
+.btn:hover .btn{
+  top: 0;
+  opacity: 1;
+}
+
+	</style>
+
+	<title>Events</title>
+</head>
+<body>
+
+	<h1 class="title text" style="font-size: 40px;letter-spacing: 3px;">Product Events</h1>
+	<div class="data">
+		<canvas id="myChart"class="box" ></canvas>
+	</div>
+	<div class="data">
+		<div>
+			<button class="btn" onclick="load_events()">refresh</button>			
+		</div>
+		<div class="event-data text box" id="eventCount" style="height: fit-content;">
+		</div>
+		<div>
+			<canvas id="myDoughnut"></canvas>
+		</div>
+	</div>
+
+ 
+<script type="text/javascript">
+	function load_events(){
+		console.log( "document loaded" );
+		var url = "http://127.0.0.1:5000/api/get_events"; // Use this if you are NOT using nginx which is first 7 tutorials
+		//var url = "/api/get_events"; // Use this if  you are using nginx. i.e tutorial 8 and onwards
+		$.get(url,function(final_api_data, status) {
+		    console.log("got response for get_events request");
+		    if(final_api_data) {
+		    	var labels_data = [];
+				var count = [];
+		    	api_data = final_api_data["events"]["eventTimestamp"];
+				for (var i=0; i < api_data.length; i++) {
+				   labels_data.push(api_data[i].timestamp);
+				   count.push(api_data[i].count);
+				}
+
+				var chart1 = new Chart("myChart", {
+				  type: "bar",
+				  data: {
+				    labels: labels_data,
+				    datasets: [{
+				      backgroundColor: "lightblue",
+				      data: count
+				    }]
+				  },
+				  options: {
+				    legend: {display: false},
+				    title: {
+				      display: true,
+				      fontSize: 24,
+				      text: "Events v Timestamp"
+				    },
+				    scales: {
+				        yAxes: [{
+				            ticks: {
+				                fontSize: 22
+				            },
+				             barPercentage: 0.7
+				        }],
+				        xAxes: [{
+				            ticks: {
+				                fontSize: 20
+				            },
+				             barPercentage: 0.7,
+
+				        }],
+				    },
+				  }
+				});
+				Chart.defaults.global.defaultFontColor = 'black';
+ 				Chart.defaults.global.defaultFontSize = 18;
+
+
+ 				var eventCount = final_api_data["events"]["eventCount"];
+ 				var eventData = document.getElementById("eventCount");
+ 				var data_d = "";
+ 				for (var i=0;i<eventCount.length;i++){
+ 					data_d += "<div><span>"+Object.keys(eventCount[i])+"</span>&nbsp;&nbsp;&nbsp;&nbsp;<span><strong>"+Object.values(eventCount[i])+"</strong></span></div>";
+ 				}
+
+ 				eventData.innerHTML = "<h3 class='title'>Event</h3>"+data_d;
+
+
+
+ 				var productCount = final_api_data["events"]["productCount"];
+
+ 				var labels_product = [];
+ 				var data_product = [];
+ 				for (var i=0; i < productCount.length; i++) {
+				   labels_product.push(Object.keys(productCount[i])[0]);
+				   data_product.push(Object.values(productCount[i])[0]);
+				}
+
+				console.log(labels_product,data_product)
+
+ 				const data_doughnut = {
+				  labels: labels_product,
+				  datasets: [{
+				    label: 'Product Events',
+				    data: data_product,
+				    backgroundColor: [
+				      'rgb(255, 99, 132)',
+				      'rgb(54, 162, 235)',
+				      'rgb(255, 205, 86)',
+				      'lightblue'
+				    ],
+				    hoverOffset: 4
+				  }]
+				};
+
+					const config_doughnut = {
+				  type: 'doughnut',
+				  data: data_doughnut,
+				};
+
+
+				var chart2 = new Chart(
+				    document.getElementById('myDoughnut'),
+				    config_doughnut
+				  );
+
+	        }
+    	});
+
+		}
+
+		window.onload = load_events();
+
+</script>
+ 
+
+</body>
+</html>
